@@ -48,6 +48,78 @@ export default function PortfolioPage() {
         </div>
       </div>
 
+      <h2 className="text-xl font-bold text-gray-900 mb-4">Experiência</h2>
+      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8 flex flex-col gap-4">
+        <div className="flex items-center gap-4">
+          <div className="relative w-12 h-12 shrink-0">
+            <Image
+              src="/inteli_finance_logo.jpg"
+              alt="Inteli Finance logo"
+              fill
+              className="object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="https://www.linkedin.com/company/inteli-finance/posts/?feedView=all"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 hover:text-indigo-700 transition-colors"
+            >
+              Inteli Finance
+            </a>
+            <span className="text-gray-400">·</span>
+            <span className="text-gray-600">Membro da célula de M&amp;A</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+          <div className="relative w-12 h-12 shrink-0">
+            <Image
+              src="/agroTech.jpg"
+              alt="AgroTech Inteli logo"
+              fill
+              className="object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="https://www.linkedin.com/company/agrotech-inteli/posts/?feedView=all"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 hover:text-indigo-700 transition-colors"
+            >
+              AgroTech Inteli
+            </a>
+            <span className="text-gray-400">·</span>
+            <span className="text-gray-600">Trainee</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+          <div className="relative w-12 h-12 shrink-0">
+            <Image
+              src="/techgears.jpg"
+              alt="TechGears logo"
+              fill
+              className="object-contain rounded-lg"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href="https://www.linkedin.com/company/tech-gears01/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-gray-900 hover:text-indigo-700 transition-colors"
+            >
+              TechGears
+            </a>
+            <span className="text-gray-400">·</span>
+            <span className="text-gray-600">Diretor de pesquisa</span>
+          </div>
+        </div>
+      </div>
+
       <h2 className="text-xl font-bold text-gray-900 mb-4">Projetos</h2>
       <div className="grid gap-4 md:grid-cols-3">
         {projects.map(({ title, description, href, icon: Icon, color }) => (
