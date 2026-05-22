@@ -1,19 +1,55 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import LogoutButton from '@/components/LogoutButton'
 import SidebarNav from '@/components/SidebarNav'
 
-export default async function DashboardLayout({ children }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default function DashboardLayout({ children }) {
+  const router = useRouter()
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!user) redirect('/login')
+  useEffect(() => {
+    const supabase = createClient()
 
-  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário'
+    async function loadUser() {
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser) {
+        router.replace('/login')
+        return
+      }
+      setUser(currentUser)
+      setLoading(false)
+    }
+
+    loadUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        router.replace('/login')
+        return
+      }
+      setUser(session.user)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [router])
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-sm text-gray-500">Carregando...</p>
+      </div>
+    )
+  }
+
+  const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario'
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col min-h-screen fixed top-0 left-0 z-30">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -38,7 +74,6 @@ export default async function DashboardLayout({ children }) {
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 ml-64 p-8 min-h-screen">
         {children}
       </main>

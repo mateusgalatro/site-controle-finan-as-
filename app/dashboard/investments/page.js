@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Trash2, TrendingUp, TrendingDown, Sparkles, RefreshCw, Loader2 } from 'lucide-react'
+import { createInvestment, deleteInvestment, fetchMarketPrice as fetchPrice, listInvestments, updateInvestment } from '@/lib/supabase/data'
 
 const INVESTMENT_TYPES = [
   { value: 'stock', label: 'Ações' },
@@ -58,16 +59,11 @@ export default function InvestmentsPage() {
     setPriceError('')
     setPriceData(null)
     try {
-      const res = await fetch(`/api/market-price?ticker=${encodeURIComponent(ticker)}`)
-      const data = await res.json()
-      if (!res.ok) {
-        setPriceError(data.error || 'Cotação não encontrada')
-      } else {
-        setPriceData(data)
-        setForm((f) => ({ ...f, current_price: String(data.price) }))
-      }
-    } catch {
-      setPriceError('Erro ao buscar cotação')
+      const data = await fetchPrice(ticker)
+      setPriceData(data)
+      setForm((f) => ({ ...f, current_price: String(data.price) }))
+    } catch (err) {
+      setPriceError(err.message || 'Erro ao buscar cotacao')
     } finally {
       setPriceFetching(false)
     }
@@ -99,9 +95,7 @@ export default function InvestmentsPage() {
     const results = await Promise.allSettled(
       withTicker.map(async (inv) => {
         try {
-          const res = await fetch(`/api/market-price?ticker=${encodeURIComponent(inv.ticker)}`)
-          if (!res.ok) return null
-          const d = await res.json()
+          const d = await fetchPrice(inv.ticker)
           return { id: inv.id, price: d.price, inv }
         } catch { return null }
       })
@@ -119,11 +113,7 @@ export default function InvestmentsPage() {
 
       // Persist updated prices to DB silently
       updates.forEach(({ id, price, inv }) => {
-        fetch(`/api/investments/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...inv, current_price: price }),
-        })
+        updateInvestment(id, { ...inv, current_price: price })
       })
     }
 
@@ -132,14 +122,14 @@ export default function InvestmentsPage() {
 
   async function loadInvestments() {
     setLoading(true)
-    const res = await fetch('/api/investments')
-    const data = await res.json()
+    const data = await listInvestments()
     const list = Array.isArray(data) ? data : []
     setInvestments(list)
     setLoading(false)
     refreshPrices(list)
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadInvestments() }, [])
 
   async function handleSubmit(e) {
@@ -156,17 +146,7 @@ export default function InvestmentsPage() {
     setSaving(true)
     const current_price = priceData?.price ?? Number(form.avg_price)
     const invested_amount = Number(form.quantity) * Number(form.avg_price)
-    const res = await fetch('/api/investments', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, current_price, invested_amount }),
-    })
-    if (!res.ok) {
-      const d = await res.json()
-      setError(d.error || 'Erro ao salvar investimento.')
-      setSaving(false)
-      return
-    }
+    await createInvestment({ ...form, current_price, invested_amount })
     setOpen(false)
     setForm({ name: '', type: 'stock', ticker: '', quantity: '', avg_price: '', date: new Date().toISOString().split('T')[0] })
     setPriceData(null)
@@ -177,21 +157,13 @@ export default function InvestmentsPage() {
 
   async function handleDelete(id) {
     if (!confirm('Tem certeza que deseja excluir este investimento?')) return
-    await fetch(`/api/investments/${id}`, { method: 'DELETE' })
+    await deleteInvestment(id)
     loadInvestments()
   }
 
   async function handleAiAnalysis() {
-    setAiLoading(true)
     setAiAnalysis('')
-    setAiError('')
-    const res = await fetch('/api/ai/analyze-investments', { method: 'POST' })
-    const data = await res.json()
-    if (!res.ok) {
-      setAiError(data.error || 'Erro ao gerar análise.')
-    } else {
-      setAiAnalysis(data.analysis)
-    }
+    setAiError('A analise com IA depende de uma API server-side e fica desativada no GitHub Pages para nao expor a chave.')
     setAiLoading(false)
   }
 

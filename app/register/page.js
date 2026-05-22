@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
     setLoading(true)
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signUp({
+    const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: name } },
@@ -43,7 +43,12 @@ export default function RegisterPage() {
       return
     }
 
-    router.push('/dashboard')
+    if (data.session) {
+      router.replace('/dashboard')
+      return
+    }
+
+    router.replace('/login')
   }
 
   return (

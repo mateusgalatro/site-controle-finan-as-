@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Trash2, Wallet, PiggyBank, Banknote, TrendingUp } from 'lucide-react'
+import { createAccount, deleteAccount, listAccounts } from '@/lib/supabase/data'
 
 const ACCOUNT_TYPES = [
   { value: 'checking', label: 'Conta Corrente', icon: Wallet },
@@ -36,12 +37,12 @@ export default function AccountsPage() {
 
   async function loadAccounts() {
     setLoading(true)
-    const res = await fetch('/api/accounts')
-    const data = await res.json()
+    const data = await listAccounts()
     setAccounts(Array.isArray(data) ? data : [])
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadAccounts() }, [])
 
   async function handleSubmit(e) {
@@ -52,17 +53,7 @@ export default function AccountsPage() {
       return
     }
     setSaving(true)
-    const res = await fetch('/api/accounts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, balance: Number(form.balance) || 0 }),
-    })
-    if (!res.ok) {
-      const d = await res.json()
-      setError(d.error || 'Erro ao criar conta.')
-      setSaving(false)
-      return
-    }
+    await createAccount({ ...form, balance: Number(form.balance) || 0 })
     setOpen(false)
     setForm({ name: '', type: 'checking', balance: '' })
     setSaving(false)
@@ -71,7 +62,7 @@ export default function AccountsPage() {
 
   async function handleDelete(id) {
     if (!confirm('Tem certeza que deseja excluir esta conta? Todas as transações associadas também serão removidas.')) return
-    await fetch(`/api/accounts/${id}`, { method: 'DELETE' })
+    await deleteAccount(id)
     loadAccounts()
   }
 

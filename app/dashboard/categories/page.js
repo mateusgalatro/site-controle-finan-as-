@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Plus, Trash2, Tag } from 'lucide-react'
+import { createCategory, deleteCategory, listCategories } from '@/lib/supabase/data'
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([])
@@ -17,12 +18,12 @@ export default function CategoriesPage() {
 
   async function loadCategories() {
     setLoading(true)
-    const res = await fetch('/api/categories')
-    const data = await res.json()
+    const data = await listCategories()
     setCategories(Array.isArray(data) ? data : [])
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadCategories() }, [])
 
   async function handleSubmit(e) {
@@ -33,17 +34,7 @@ export default function CategoriesPage() {
       return
     }
     setSaving(true)
-    const res = await fetch('/api/categories', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-    if (!res.ok) {
-      const d = await res.json()
-      setError(d.error || 'Erro ao criar categoria.')
-      setSaving(false)
-      return
-    }
+    await createCategory(form)
     setOpen(false)
     setForm({ name: '', icon: '💰', color: '#6366f1' })
     setSaving(false)
@@ -52,7 +43,7 @@ export default function CategoriesPage() {
 
   async function handleDelete(id) {
     if (!confirm('Tem certeza que deseja excluir esta categoria?')) return
-    await fetch(`/api/categories/${id}`, { method: 'DELETE' })
+    await deleteCategory(id)
     loadCategories()
   }
 

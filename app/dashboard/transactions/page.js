@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { Plus, Trash2 } from 'lucide-react'
+import { createTransaction, deleteTransaction, listAccounts, listCategories, listTransactions } from '@/lib/supabase/data'
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -29,7 +29,6 @@ export default function TransactionsPage() {
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [deleteId, setDeleteId] = useState(null)
 
   const [form, setForm] = useState({
     description: '', amount: '', type: 'expense',
@@ -38,17 +37,18 @@ export default function TransactionsPage() {
 
   async function loadData() {
     setLoading(true)
-    const [txRes, accRes, catRes] = await Promise.all([
-      fetch(`/api/transactions?month=${month}&year=${year}`),
-      fetch('/api/accounts'),
-      fetch('/api/categories'),
+    const [txData, accData, catData] = await Promise.all([
+      listTransactions({ month, year }),
+      listAccounts(),
+      listCategories(),
     ])
-    setTransactions(await txRes.json())
-    setAccounts(await accRes.json())
-    setCategories(await catRes.json())
+    setTransactions(txData)
+    setAccounts(accData)
+    setCategories(catData)
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
   useEffect(() => { loadData() }, [month, year])
 
   async function handleSubmit(e) {
@@ -59,13 +59,10 @@ export default function TransactionsPage() {
       return
     }
     setSaving(true)
-    const res = await fetch('/api/transactions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-    if (!res.ok) {
-      const d = await res.json()
+    try {
+      await createTransaction(form)
+    } catch (err) {
+      const d = { error: err.message }
       setError(d.error || 'Erro ao salvar transação.')
       setSaving(false)
       return
@@ -78,7 +75,7 @@ export default function TransactionsPage() {
 
   async function handleDelete(id) {
     if (!confirm('Tem certeza que deseja excluir esta transação?')) return
-    await fetch(`/api/transactions/${id}`, { method: 'DELETE' })
+    await deleteTransaction(id)
     loadData()
   }
 
