@@ -25,6 +25,8 @@ const projects = [
   },
 ]
 
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || ''
+
 export default function PortfolioPage() {
   return (
     <div className="max-w-4xl mx-auto">
@@ -32,7 +34,7 @@ export default function PortfolioPage() {
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
           <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-indigo-100 shrink-0">
             <Image
-              src="/foto-perfil.jpeg"
+              src={`${BASE}/foto-perfil.jpeg`}
               alt="Foto de perfil de Mateus Galatro"
               fill
               className="object-cover"
@@ -53,7 +55,7 @@ export default function PortfolioPage() {
         <div className="flex items-center gap-4">
           <div className="relative w-12 h-12 shrink-0">
             <Image
-              src="/inteli_finance_logo.jpg"
+              src={`${BASE}/inteli_finance_logo.jpg`}
               alt="Inteli Finance logo"
               fill
               className="object-contain rounded-lg"
@@ -76,7 +78,7 @@ export default function PortfolioPage() {
         <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
           <div className="relative w-12 h-12 shrink-0">
             <Image
-              src="/agroTech.jpg"
+              src={`${BASE}/agroTech.jpg`}
               alt="AgroTech Inteli logo"
               fill
               className="object-contain rounded-lg"
@@ -99,7 +101,7 @@ export default function PortfolioPage() {
         <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
           <div className="relative w-12 h-12 shrink-0">
             <Image
-              src="/techgears.jpg"
+              src={`${BASE}/techgears.jpg`}
               alt="TechGears logo"
               fill
               className="object-contain rounded-lg"
